@@ -1,3 +1,4 @@
+
 async function fetchDashboardData() {
   // 可以直接使用 fetch，Next.js 会自动处理缓存
   try {
