@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -54,13 +55,16 @@ export default function LoginPage() {
             />
           </div>
 
-          <button
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? '登录中...' : '登录'}
+          </Button>
+          {/* <button
             type="submit"
             disabled={loading}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             {loading ? '登录中...' : '登录'}
-          </button>
+          </button> */}
 
           <div className="text-center">
             <Link href="/register" className="text-blue-600 hover:text-blue-800">

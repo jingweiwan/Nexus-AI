@@ -25,28 +25,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // 获取当前用户信息
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('/api/current-user');
-        if (res.ok) {
-          const userData = await res.json();
-          setUser(userData);
-        } else {
-          setUser(null);
-          router.push('/login');
-        }
-      } catch (err) {
+// 获取当前用户信息
+useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const res = await fetch('/api/current-user');
+      if (res.ok) {
+        const userData = await res.json();
+        setUser(userData);
+      } else {
         setUser(null);
-        router.push('/login');
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchUser();
-  }, []);
+  fetchUser();
+}, []);
 
   // 登录函数
   const login = async (email: string, password: string) => {
@@ -82,7 +80,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch('/api/logout', { method: 'POST' });
       setUser(null);
-      router.push('/login');
+      // 登出后直接跳转到主页
+      router.push('/');
     } catch (err) {
       setError('登出过程中发生错误');
     } finally {

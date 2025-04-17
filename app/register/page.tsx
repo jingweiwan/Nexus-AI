@@ -1,12 +1,13 @@
 "use client";
 
+import Link from 'next/link';
+import router from 'next/router';
 import { useState } from 'react';
 
 type UserData = {
   name: string;
   email: string;
   password: string;
-  age?: number;
 };
 
 export default function RegisterForm() {
@@ -14,7 +15,6 @@ export default function RegisterForm() {
     name: '',
     email: '',
     password: '',
-    age: undefined
   });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
@@ -49,7 +49,8 @@ export default function RegisterForm() {
       }
 
       setSuccess(true);
-      setFormData({ name: '', email: '', password: '', age: undefined });
+      setFormData({ name: '', email: '', password: ''});
+      router.push('/login');
     } catch (err) {
       setError(err instanceof Error ? err.message : '发生未知错误');
     } finally {
@@ -117,21 +118,6 @@ export default function RegisterForm() {
           />
         </div>
 
-        <div className="mb-6">
-          <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
-            年龄 (可选，必须≥18岁)
-          </label>
-          <input
-            type="number"
-            id="age"
-            name="age"
-            value={formData.age || ''}
-            onChange={handleChange}
-            min="18"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
         <button
           type="submit"
           disabled={loading}
@@ -139,6 +125,12 @@ export default function RegisterForm() {
         >
           {loading ? '处理中...' : '注册'}
         </button>
+        <div className="text-center mt-6">
+            已有账号？
+            <Link href="/register" className="text-blue-600 hover:text-blue-800">
+              登录
+            </Link>
+          </div>
       </form>
     </div>
   );

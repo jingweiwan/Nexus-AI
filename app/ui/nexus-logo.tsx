@@ -1,13 +1,14 @@
 import { GlobeAltIcon } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
+import Image from 'next/image';
 
-export default function AcmeLogo() {
+export default function NexusLogo() {
   return (
     <div
       className={`${lusitana.className} flex flex-row items-center leading-none text-white`}
     >
-      <GlobeAltIcon className="h-12 w-12 rotate-[15deg]" />
-      <p className="text-[44px]">Acme</p>
+      <Image src="/nexus-logo.svg" alt="Nexus Logo" width={200} height={200} />
+      <p className="text-[44px]">Nexus</p>
     </div>
   );
 }
