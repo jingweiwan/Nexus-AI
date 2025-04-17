@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import NavLinks from '@/app/ui/dashboard/nav-links';
-import NexusLogo from '@/app/ui/Nexus-logo';
+import NexusLogo from '@/app/ui/nexus-logo';
 import { PowerIcon } from '@heroicons/react/24/outline';
 
 export default function SideNav() {
