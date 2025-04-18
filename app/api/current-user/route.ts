@@ -17,13 +17,13 @@ export async function GET() {
     }
 
     // 验证令牌
-    const payload = verifyToken(token.value);
+    const payload = await verifyToken(token.value);
 
     // 如果令牌无效，返回未授权
     if (!payload) {
       return NextResponse.json({ error: '无效的令牌' }, { status: 401 });
     }
-
+    console.log('payload', payload);
     // 从数据库获取用户信息
     const users = await sql`
       SELECT id, name, email
