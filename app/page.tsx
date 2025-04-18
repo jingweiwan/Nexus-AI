@@ -10,6 +10,9 @@ import Image from 'next/image';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/app/contexts/AuthContext';
+import dashboardImage from '@/public/nexus-dashboard.jpeg';
+import demoImage from '@/public/demo.png';
+import heroMobileImage from '@/public/hero-mobile.png';
 
 export default function Page() {
   const { user, loading } = useAuth();
@@ -106,7 +109,7 @@ export default function Page() {
         <div className="flex flex-col items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
           <div className="relative mb-8 transition-all duration-300 hover:scale-105 shadow-lg rounded-xl overflow-hidden">
             <Image
-              src="/hero-desktop.png"
+              src={dashboardImage}
               width={1000}
               height={760}
               className="hidden md:block"
@@ -116,7 +119,7 @@ export default function Page() {
           </div>
           <div className="relative transition-all duration-300 hover:scale-105 shadow-lg rounded-xl overflow-hidden">
             <Image
-              src="/demo.png"
+              src={demoImage}
               width={1000}
               height={760}
               className="hidden md:block"
@@ -125,7 +128,7 @@ export default function Page() {
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
           </div>
           <Image
-            src="/hero-mobile.png"
+            src={heroMobileImage}
             width={560}
             height={620}
             className="block md:hidden rounded-lg shadow-md"
