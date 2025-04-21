@@ -18,7 +18,7 @@ import NexusLogo from "@/components/ui/nexusLogo"
 import {
   UserGroupIcon,
   HomeIcon,
-  DocumentDuplicateIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import NavLink from "@/app/ui/dashboard/nav-link";
 
@@ -27,9 +27,9 @@ import NavLink from "@/app/ui/dashboard/nav-link";
 export const links = [
   { name: 'Home', href: '/dashboard', icon: HomeIcon },
   {
-    name: 'Invoices',
-    href: '/dashboard/invoices',
-    icon: DocumentDuplicateIcon,
+    name: 'Chat',
+    href: '/dashboard/chat',
+    icon: ChatBubbleLeftRightIcon,
   },
   { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
 
