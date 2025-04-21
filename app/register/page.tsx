@@ -1,8 +1,14 @@
 "use client";
 
 import Link from 'next/link';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type UserData = {
   name: string;
@@ -11,6 +17,7 @@ type UserData = {
 };
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [formData, setFormData] = useState<UserData>({
     name: '',
     email: '',
@@ -58,80 +65,134 @@ export default function RegisterForm() {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { type: 'spring', stiffness: 100 }
+    }
+  };
+
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">用户注册</h2>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-md mx-auto w-full"
+      >
+        <Card className="w-full shadow-xl bg-white/90 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-t-lg">
+            <CardTitle className="text-2xl font-bold text-center text-gray-800">用户注册</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-4"
+              >
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
-          {error}
-        </div>
-      )}
+            {success && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-4"
+              >
+                <Alert variant="default" className="bg-gray-100 text-gray-700 border-gray-200">
+                  <AlertDescription>注册成功！</AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
 
-      {success && (
-        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
-          注册成功！
-        </div>
-      )}
+            <motion.form
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              onSubmit={handleSubmit}
+              className="space-y-5"
+            >
+              <motion.div variants={itemVariants} className="mb-4 space-y-2">
+                <Label htmlFor="name" className="text-gray-700">姓名</Label>
+                <Input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-white/70 backdrop-blur-sm border-gray-300 focus:border-black focus:ring-black"
+                />
+              </motion.div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-            姓名
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            密码
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            电子邮箱
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+              <motion.div variants={itemVariants} className="mb-4 space-y-2">
+                <Label htmlFor="password" className="text-gray-700">密码</Label>
+                <Input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-white/70 backdrop-blur-sm border-gray-300 focus:border-black focus:ring-black"
+                />
+              </motion.div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? '处理中...' : '注册'}
-        </button>
-        <div className="text-center mt-6">
-            已有账号？
-            <Link href="/register" className="text-blue-600 hover:text-blue-800">
-              登录
-            </Link>
-          </div>
-      </form>
+              <motion.div variants={itemVariants} className="mb-4 space-y-2">
+                <Label htmlFor="email" className="text-gray-700">电子邮箱</Label>
+                <Input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-white/70 backdrop-blur-sm border-gray-300 focus:border-black focus:ring-black"
+                />
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium py-2 rounded-md shadow-md"
+                >
+                  {loading ? '处理中...' : '注册'}
+                </Button>
+              </motion.div>
+
+              <motion.div
+                variants={itemVariants}
+                className="text-center mt-6 text-gray-600"
+              >
+                已有账号？
+                <Link href="/login" className="text-orange-600 hover:text-orange-800 ml-1 font-medium">
+                  登录
+                </Link>
+              </motion.div>
+            </motion.form>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 };

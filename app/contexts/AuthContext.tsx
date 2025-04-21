@@ -11,6 +11,7 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
+  isAuthenticated: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -90,7 +91,7 @@ useEffect(() => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, error }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, error, isAuthenticated: user !== null }}>
       {children}
     </AuthContext.Provider>
   );
