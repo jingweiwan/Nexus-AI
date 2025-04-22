@@ -3,11 +3,16 @@
 import { useChat } from '@ai-sdk/react';
 import { useState, useRef, useEffect } from 'react';
 import { lusitana } from '@/app/ui/fonts';
-import { SendIcon, Loader2 } from 'lucide-react';
+import { SendIcon, Loader2, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
+// @ts-ignore
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+// @ts-ignore
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 export default function Page() {
-  const { messages, input, handleSubmit, handleInputChange, status, data } =
+  const { messages, input, handleSubmit, handleInputChange, status, data, stop } =
     useChat({
       api: '/api/deepseek-chat',
     });
@@ -31,6 +36,10 @@ export default function Page() {
   const handlePromptClick = (prompt: string) => {
     setSelectedPrompt(prompt);
     handleInputChange({ target: { value: prompt } } as React.ChangeEvent<HTMLTextAreaElement>);
+  };
+
+  const handleStopGeneration = () => {
+    stop();
   };
 
   const prompts = [
@@ -126,9 +135,58 @@ export default function Page() {
                     {message.parts.map((part, index) => {
                       switch (part.type) {
                         case 'text':
-                          return (
+                          return message.role === 'user' ? (
                             <div key={index} className="whitespace-pre-wrap">
                               {part.text}
+                            </div>
+                          ) : (
+                            <div key={index} className="prose prose-sm max-w-none">
+                              <ReactMarkdown
+                                components={{
+                                  code({node, className, children, ...props}) {
+                                    const match = /language-(\w+)/.exec(className || '');
+                                    return match ? (
+                                      <SyntaxHighlighter
+                                        style={vscDarkPlus}
+                                        language={match[1]}
+                                        PreTag="div"
+                                        {...props}
+                                      >
+                                        {String(children).replace(/\n$/, '')}
+                                      </SyntaxHighlighter>
+                                    ) : (
+                                      <code className="bg-gray-200 px-1 py-0.5 rounded text-sm" {...props}>
+                                        {children}
+                                      </code>
+                                    );
+                                  },
+                                  table({children}) {
+                                    return (
+                                      <div className="overflow-x-auto">
+                                        <table className="border-collapse border border-gray-300 my-4 w-full">
+                                          {children}
+                                        </table>
+                                      </div>
+                                    );
+                                  },
+                                  th({children}) {
+                                    return (
+                                      <th className="border border-gray-300 bg-gray-200 px-4 py-2 text-left">
+                                        {children}
+                                      </th>
+                                    );
+                                  },
+                                  td({children}) {
+                                    return (
+                                      <td className="border border-gray-300 px-4 py-2">
+                                        {children}
+                                      </td>
+                                    );
+                                  }
+                                }}
+                              >
+                                {part.text}
+                              </ReactMarkdown>
                             </div>
                           );
                         default:
@@ -178,7 +236,6 @@ export default function Page() {
             <div ref={messagesEndRef} />
           </div>
         )}
-
       </motion.div>
 
       <motion.form
@@ -197,17 +254,31 @@ export default function Page() {
           className="w-full p-4 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none shadow-sm transition-all duration-200"
           rows={3}
         />
-        <motion.button
-          type="submit"
-          disabled={status !== 'ready' || !input.trim()}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="absolute right-3 bottom-3 p-2 rounded-full bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-          aria-label="发送"
-          tabIndex={0}
-        >
-          <SendIcon className="h-5 w-5" />
-        </motion.button>
+        {status === 'ready' ? (
+          <motion.button
+            type="submit"
+            disabled={!input.trim()}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="absolute right-3 bottom-3 p-2 rounded-full bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            aria-label="发送"
+            tabIndex={0}
+          >
+            <SendIcon className="h-5 w-5" />
+          </motion.button>
+        ) : (
+          <motion.button
+            type="button"
+            onClick={handleStopGeneration}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="absolute right-3 bottom-3 p-2 rounded-full bg-red-500 text-white transition-all duration-200"
+            aria-label="中止"
+            tabIndex={0}
+          >
+            <XCircle className="h-5 w-5" />
+          </motion.button>
+        )}
       </motion.form>
 
       <AnimatePresence>
