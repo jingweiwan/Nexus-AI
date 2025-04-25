@@ -6,25 +6,55 @@ import { lusitana } from '@/app/ui/fonts';
 import { SendIcon, Loader2, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
+import cx from 'classnames';
 // @ts-ignore
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 // @ts-ignore
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { Weather } from '@/components/ui/weather';
 
 export default function Page() {
   const { messages, input, handleSubmit, handleInputChange, status, data, stop } =
     useChat({
-      api: '/api/deepseek-chat',
+      api: '/api/chat',
+      body: {
+        model: 'xai',
+      },
     });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<string>('');
+  const [autoScroll, setAutoScroll] = useState<boolean>(true);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (messagesEndRef.current && autoScroll) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, autoScroll]);
+
+  // 监听滚动事件，当用户手动滚动时禁用自动滚动
+  useEffect(() => {
+    const handleScroll = () => {
+      const chatContainer = document.querySelector('.chat-container');
+      if (!chatContainer) return;
+
+      const { scrollTop, scrollHeight, clientHeight } = chatContainer as HTMLElement;
+      const isScrolledToBottom = scrollHeight - scrollTop - clientHeight < 50;
+
+      setAutoScroll(isScrolledToBottom);
+    };
+
+    const chatContainer = document.querySelector('.chat-container');
+    if (chatContainer) {
+      chatContainer.addEventListener('scroll', handleScroll);
+    }
+
+    return () => {
+      if (chatContainer) {
+        chatContainer.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -55,7 +85,7 @@ export default function Page() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-white rounded-lg shadow-md p-6 flex-1 overflow-y-auto mb-4 relative"
+        className="bg-white rounded-lg shadow-md p-6 flex-1 overflow-y-auto mb-4 relative chat-container"
       >
         {messages.length === 0 ? (
           <motion.div
@@ -189,7 +219,52 @@ export default function Page() {
                               </ReactMarkdown>
                             </div>
                           );
-                        default:
+                        case 'tool-invocation':
+                          // return (
+                          //   <div key={index} className="bg-blue-50 rounded-lg p-4 my-2 border border-blue-200">
+                          //     <div className="flex items-center mb-2">
+                          //       <span className="text-blue-600 font-medium mr-2">工具调用:</span>
+                          //       <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">{part.toolInvocation.toolName}</span>
+                          //     </div>
+                          //     <div>{JSON.stringify(part.toolInvocation)}</div>
+                          //   </div>
+                          // );
+
+                          const { toolInvocation } = part;
+                          const { toolName, toolCallId, state } = toolInvocation;
+
+                          if (state === 'call') {
+                            const { args } = toolInvocation;
+                            return (
+                              <div
+                                key={toolCallId}
+                                className={cx({
+                                  skeleton: ['getWeather'].includes(toolName),
+                                })}
+                              >
+                                {toolName === 'getWeather' ? (
+                                  <Weather />
+                                ): null}
+                              </div>
+                            )
+                          }
+                          if (state === 'result') {
+                            const { args } = toolInvocation;
+                            return (
+                              <div
+                                key={toolCallId}
+                                className={cx({
+                                  skeleton: ['getWeather'].includes(toolName),
+                                })}
+                              >
+                                {toolName === 'getWeather' ? (
+                                  <Weather />
+                                ): null}
+                              </div>
+                            )
+                          }
+
+                          default:
                           return null;
                       }
                     })}

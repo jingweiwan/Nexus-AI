@@ -8,6 +8,7 @@
   "dependencies": {
     "@ai-sdk/deepseek": "^0.2.11",
     "@ai-sdk/react": "^1.2.9",
+    "@ai-sdk/xai": "^1.2.15",
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-dialog": "^1.1.7",
     "@radix-ui/react-label": "^2.1.4",
@@ -20,7 +21,9 @@
     "autoprefixer": "10.4.20",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
+    "classnames": "^2.5.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.7.4",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.488.0",
