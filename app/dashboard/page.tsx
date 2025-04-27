@@ -1,3 +1,4 @@
+import { Chart } from '@/app/ui/dashboard/chart';
 
 async function fetchDashboardData() {
   // 可以直接使用 fetch，Next.js 会自动处理缓存
@@ -15,12 +16,13 @@ async function fetchDashboardData() {
 
 export default async function Page() {
   // 在服务器组件中可以直接使用 async/await
-  const data = await fetchDashboardData();
+  // const data = await fetchDashboardData();
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">仪表盘</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+      <div className="">
+        <Chart />
       </div>
     </div>
   );
