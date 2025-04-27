@@ -111,9 +111,10 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error('API error:', error);
-    return Response.json(
-      { error: error instanceof Error ? error.message : '发生未知错误' },
-      { status: 500 }
-    );
+    const stream = new TransformStream();
+    const writer = stream.writable.getWriter();
+    writer.write(new TextEncoder().encode('抱歉，处理您的请求时发生错误！'));
+    writer.close();
+    return new Response(stream.readable);
   }
 }

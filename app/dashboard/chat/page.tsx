@@ -3,7 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { useState, useRef, useEffect } from 'react';
 import { lusitana } from '@/app/ui/fonts';
-import { SendIcon, Loader2, XCircle } from 'lucide-react';
+import { SendIcon, Loader2, XCircle, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import cx from 'classnames';
@@ -13,8 +13,15 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { Weather } from '@/components/ui/weather';
 
+// 模型配置
+const MODEL_CONFIG = [
+  { id: 'openai', name: 'OpenAI', available: false },
+  { id: 'xai', name: 'Grok', available: true },
+  { id: 'deepseek', name: 'DeepSeek', available: true }
+];
+
 export default function Page() {
-  const [model, setModel] = useState<string>('openai');
+  const [model, setModel] = useState<string>('xai');
   const { messages, input, handleSubmit, handleInputChange, status, data, stop } =
     useChat({
       api: '/api/chat',
@@ -87,24 +94,24 @@ export default function Page() {
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] p-6 mx-auto">
       <div className="mb-4 flex justify-end space-x-2">
-        <button
-          onClick={() => handleModelChange('openai')}
-          className={`px-3 py-1 rounded-md transition-all duration-200 ${model === 'openai' ? 'bg-primary text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-        >
-          OpenAI
-        </button>
-        <button
-          onClick={() => handleModelChange('xai')}
-          className={`px-3 py-1 rounded-md transition-all duration-200 ${model === 'xai' ? 'bg-primary text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-        >
-          XAI
-        </button>
-        <button
-          onClick={() => handleModelChange('deepseek')}
-          className={`px-3 py-1 rounded-md transition-all duration-200 ${model === 'deepseek' ? 'bg-primary text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-        >
-          DeepSeek
-        </button>
+        {MODEL_CONFIG.map((modelItem) => (
+          <button
+            key={modelItem.id}
+            onClick={() => modelItem.available && handleModelChange(modelItem.id)}
+            disabled={!modelItem.available}
+            className={`px-3 py-1 rounded-md transition-all duration-200 flex items-center space-x-1
+              ${model === modelItem.id ? 'bg-primary text-white' : 'bg-gray-200 hover:bg-gray-300'}
+              ${!modelItem.available ? 'opacity-60 cursor-not-allowed' : ''}
+            `}
+          >
+            <span>{modelItem.name}</span>
+            {!modelItem.available && (
+              <span className="text-xs flex items-center" title="暂不可用">
+                <AlertCircle className="h-3 w-3 ml-1" />
+              </span>
+            )}
+          </button>
+        ))}
       </div>
       <motion.div
         initial={{ opacity: 0, y: 10 }}
