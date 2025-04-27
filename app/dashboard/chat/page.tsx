@@ -14,11 +14,12 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { Weather } from '@/components/ui/weather';
 
 export default function Page() {
+  const [model, setModel] = useState<string>('openai');
   const { messages, input, handleSubmit, handleInputChange, status, data, stop } =
     useChat({
       api: '/api/chat',
       body: {
-        model: 'xai',
+        model: model,
       },
     });
 
@@ -72,6 +73,10 @@ export default function Page() {
     stop();
   };
 
+  const handleModelChange = (newModel: string) => {
+    setModel(newModel);
+  };
+
   const prompts = [
     "如何分析期权定价？",
     "解释隐含波动率",
@@ -81,6 +86,26 @@ export default function Page() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] p-6 mx-auto">
+      <div className="mb-4 flex justify-end space-x-2">
+        <button
+          onClick={() => handleModelChange('openai')}
+          className={`px-3 py-1 rounded-md transition-all duration-200 ${model === 'openai' ? 'bg-primary text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+        >
+          OpenAI
+        </button>
+        <button
+          onClick={() => handleModelChange('xai')}
+          className={`px-3 py-1 rounded-md transition-all duration-200 ${model === 'xai' ? 'bg-primary text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+        >
+          XAI
+        </button>
+        <button
+          onClick={() => handleModelChange('deepseek')}
+          className={`px-3 py-1 rounded-md transition-all duration-200 ${model === 'deepseek' ? 'bg-primary text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+        >
+          DeepSeek
+        </button>
+      </div>
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -244,7 +269,12 @@ export default function Page() {
                               >
                                 {toolName === 'getWeather' ? (
                                   <Weather />
-                                ): null}
+                                ): (
+                                  <div>
+                                    <h3>{args.title}</h3>
+                                    <p>{args.content}</p>
+                                  </div>
+                                )}
                               </div>
                             )
                           }
@@ -259,7 +289,12 @@ export default function Page() {
                               >
                                 {toolName === 'getWeather' ? (
                                   <Weather />
-                                ): null}
+                                ): (
+                                  <div>
+                                    <h3>{args.title}</h3>
+                                    <p>{args.content}</p>
+                                  </div>
+                                )}
                               </div>
                             )
                           }
