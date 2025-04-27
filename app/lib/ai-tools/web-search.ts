@@ -12,6 +12,7 @@ export const webSearch = tool({
   execute: async ({ query }) => {
     // 在搜索查询中添加当前时间信息
     const now = new Date();
+    console.log(now);
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
