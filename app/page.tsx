@@ -198,7 +198,7 @@ export default function Page() {
               transition={{ duration: 0.5, delay: 0.8 }}
             >
               <Link
-                href="/dashboard"
+                href="/home"
                 className={cn(
                   buttonVariants({ variant: "default", size: "lg" }),
                   "self-start"

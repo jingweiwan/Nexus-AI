@@ -340,18 +340,38 @@ export default function Page() {
                                 key={toolCallId}
                                 className={cx({
                                   skeleton: ['getWeather'].includes(toolName),
+                                  'bg-blue-50 p-3 rounded-md my-2 transition-all duration-300': true
                                 })}
                               >
+                                <div className="flex items-center text-sm text-blue-600 mb-1">
+                                  <span className="font-medium">工具调用结果：</span>
+                                  <span className="ml-1 bg-blue-100 px-2 py-0.5 rounded text-xs">
+                                    {toolName}
+                                  </span>
+                                </div>
                                 {toolName === 'getWeather' ? (
                                   <Weather weatherAtLocation={result}/>
-                                ): (
+                                ) : toolName === 'webSearch' ? (
+                                  <div className="text-sm">
+                                    <div className="flex items-center mb-2">
+                                      <span className="font-medium">搜索查询:</span>
+                                      <span className="ml-1">{args.query}</span>
+                                    </div>
+                                    <div className="text-xs text-gray-500 italic mb-1">
+                                      {status === 'submitted' ? `已获取搜索结果，AI正在分析中...` :  status === 'ready' ?  `AI分析完成` : `AI生成中...`}
+                                    </div>
+                                    <div className="text-xs text-gray-500 italic">
+                                      结果将在下方文本中呈现
+                                    </div>
+                                  </div>
+                                ) : (
                                   <div>
                                     <h3>{args.title}</h3>
                                     <p>{args.content}</p>
                                   </div>
                                 )}
                               </div>
-                            )
+                            );
                           }
 
                           default:

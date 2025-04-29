@@ -25,13 +25,13 @@ import NavLink from "@/app/ui/dashboard/nav-link";
 // Map of links to display in the side navigation.
 // Depending on the size of the application, this would be stored in a database.
 export const links = [
-  { name: 'Home', href: '/dashboard', icon: HomeIcon },
+  { name: 'Home', href: '/home', icon: HomeIcon },
   {
     name: 'Chat',
-    href: '/dashboard/chat',
+    href: '/home/chat',
     icon: ChatBubbleLeftRightIcon,
   },
-  { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
+  { name: 'Customers', href: '/home/customers', icon: UserGroupIcon },
 
 ];
 
