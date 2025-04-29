@@ -62,7 +62,7 @@ useEffect(() => {
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
-        router.push('/dashboard');
+        router.push('/home');
       } else {
         const error = await res.json();
         setError(error.error || '登录失败');

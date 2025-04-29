@@ -309,14 +309,23 @@ export default function Page() {
                                 key={toolCallId}
                                 className={cx({
                                   skeleton: ['getWeather'].includes(toolName),
-                                  'bg-blue-50 p-3 rounded-md my-2': true
+                                  'bg-orange-50 p-3 rounded-md my-2 w-full': true
                                 })}
                               >
-                                <div className="flex items-center text-sm text-blue-600 mb-1">
-                                  <span className="font-medium">工具调用：</span>
-                                  <span className="ml-1 bg-blue-100 px-2 py-0.5 rounded text-xs">
-                                    {toolName}
-                                  </span>
+                                <div className="flex items-center justify-between w-full text-sm mb-2">
+                                  <div className="flex items-center">
+                                    <span className="font-medium text-gray-800">工具调用：</span>
+                                    <span className="ml-1.5 bg-orange-100 px-2.5 py-0.5 rounded-full text-xs text-orange-700 font-medium">
+                                      {toolName}
+                                    </span>
+                                  </div>
+
+                                  {(status === 'submitted' || status === 'streaming') && (
+                                    <div className="flex items-center text-xs text-gray-500 italic">
+                                      <span className="mr-1.5 h-2 w-2 bg-orange-400 rounded-full animate-pulse"></span>
+                                      使用工具中...
+                                    </div>
+                                  )}
                                 </div>
                                 {toolName === 'getWeather' ? (
                                   <Weather />
