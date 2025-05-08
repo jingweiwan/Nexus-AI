@@ -2,7 +2,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 
 export const getWeather = tool({
-  description: 'Get the current weather at a location',
+  description: "获取特定位置的当前天气信息。仅当用户明确询问天气、温度、降水、湿度等天气相关信息时才使用此工具。如果用户没有明确询问天气，请不要使用此工具。",
   parameters: z.object({
     latitude: z.number(),
     longitude: z.number(),

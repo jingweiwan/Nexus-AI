@@ -86,9 +86,15 @@ export async function POST(req: Request) {
       return basePrompt;
     };
 
-    const getTools = (modelType: string) => {
-      // 基础工具对象
-      const baseTools = { getWeather };
+    const getTools = (modelType: string, userQuery: string) => {
+      // 检查用户查询是否与天气相关
+      const weatherKeywords = ['天气', '温度', '气温', '下雨', '晴天', '阴天', '湿度', 'weather', 'temperature', 'rain', 'sunny', 'humidity'];
+      const isWeatherQuery = weatherKeywords.some(keyword =>
+        userQuery.toLowerCase().includes(keyword)
+      );
+
+      // 基础工具对象 - 只在天气相关查询时包含 getWeather
+      const baseTools = isWeatherQuery ? { getWeather } : undefined;
 
       // 如果不使用网络搜索，只返回基础工具
       if (!useWebSearch) {
@@ -110,7 +116,7 @@ export async function POST(req: Request) {
       system: getSystemPrompt(model),
       messages,
       maxSteps: 5,
-      tools: getTools(model),
+      tools: getTools(model, messages[messages.length - 1].content),
       toolChoice: 'auto',
       experimental_transform: [smoothStream({ chunking: 'word' })],
       toolCallStreaming: true,
