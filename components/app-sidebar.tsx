@@ -36,7 +36,6 @@ export function AppSidebar() {
   }
 
   return (
-    <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2">
@@ -78,6 +77,5 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-    </SidebarProvider>
   )
 }
