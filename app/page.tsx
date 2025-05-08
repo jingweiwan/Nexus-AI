@@ -36,6 +36,8 @@ export default function Page() {
     }
   };
 
+  const isMobile = window.innerWidth < 768;
+
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
@@ -81,7 +83,11 @@ export default function Page() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <NexusLogo />
+          <div className="flex items-center">
+            <NexusLogo width={isMobile ? 50 : 200} height={isMobile ? 50 : 200} />
+            <div className="text-white ml-4 text-2xl font-bold">Nexus</div>
+          </div>
+
         </motion.div>
 
         <motion.div

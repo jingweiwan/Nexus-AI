@@ -1,6 +1,7 @@
 import SideNav from '@/app/ui/dashboard/sidenav';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { Bars3Icon } from '@heroicons/react/24/outline';
 
 // export default function Layout({ children }: { children: React.ReactNode }) {
 //   return (
@@ -18,7 +19,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <main className='flex-1'>
-        <SidebarTrigger />
+        <SidebarTrigger >
+          <Bars3Icon className="h-5 w-5" />
+        </SidebarTrigger>
         {children}
       </main>
     </SidebarProvider>
