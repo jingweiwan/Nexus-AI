@@ -13,6 +13,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import dashboardImage from '@/public/nexus-dashboard.jpeg';
 import demoImage from '@/public/demo.png';
 import heroMobileImage from '@/public/hero-mobile.png';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
@@ -36,8 +37,7 @@ export default function Page() {
     }
   };
 
-  const isMobile = window.innerWidth < 768;
-
+  const isMobile = useIsMobile();
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
