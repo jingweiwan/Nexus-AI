@@ -13,7 +13,6 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { Weather } from '@/components/ui/weather';
 import { Switch } from '@/components/ui/switch';
-
 // 模型配置
 const MODEL_CONFIG = [
   { id: 'openai', name: 'OpenAI', available: false },
@@ -21,10 +20,13 @@ const MODEL_CONFIG = [
   { id: 'deepseek', name: 'DeepSeek', available: true }
 ];
 
+
+
 export default function Page() {
-  const [model, setModel] = useState<string>('xai');
+  const [modelConfig, setModelConfig] = useState<{ id: string, name: string, available: boolean, default: boolean }[]>([]);
+  const [model, setModel] = useState<string>('');
   const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
-  const { messages, input, handleSubmit, handleInputChange, status, data, stop } =
+  const { messages, input, handleSubmit, handleInputChange, status, data, stop, reload } =
     useChat({
       api: '/api/chat',
       body: {
@@ -32,7 +34,6 @@ export default function Page() {
         useWebSearch: useWebSearch,
       },
     });
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<string>('');
   const [autoScroll, setAutoScroll] = useState<boolean>(true);
@@ -77,6 +78,17 @@ export default function Page() {
     };
   }, []);
 
+  useEffect(() => {
+    fetch('/api/edge-config?key=MODEL_CONFIG').then((res) => res.json()).then((data) => {
+      const configData = data as { id: string, name: string, available: boolean, default: boolean }[];
+      setModelConfig(configData);
+
+      // 设置默认模型
+      const defaultModel = configData.find(m => m.default)?.id || 'xai';
+      setModel(defaultModel);
+    });
+  }, []);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -99,7 +111,7 @@ export default function Page() {
 
   const handleRetry = () => {
     setErrorMessage('');
-    // 可以在这里添加重试逻辑
+    reload();
   };
 
   const prompts = [
@@ -112,7 +124,7 @@ export default function Page() {
   return (
     <div className="flex flex-col h-[calc(100vh-2rem)] p-6 mx-auto">
       <div className="mb-4 flex justify-end space-x-2">
-        {MODEL_CONFIG.map((modelItem) => (
+        {modelConfig.map((modelItem) => (
           <button
             key={modelItem.id}
             onClick={() => modelItem.available && handleModelChange(modelItem.id)}

@@ -15,6 +15,7 @@ import { webSearch } from '@/app/lib/ai-tools/web-search';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 import { createXai } from "@ai-sdk/xai";
 import { createOpenAI, openai as openaiClient } from "@ai-sdk/openai";
+import { defaultSettingsMiddleware, wrapLanguageModel } from 'ai';
 
 export const maxDuration = 60;
 
@@ -51,7 +52,20 @@ export async function POST(req: Request) {
     const getModelProvider = (modelType: string) => {
       switch (modelType) {
         case 'openai':
-          return openai("gpt-4o-mini");
+          return wrapLanguageModel({
+            model: openai("gpt-4o-mini"),
+            middleware: defaultSettingsMiddleware({
+              settings: {
+                temperature: 0.5,
+                maxTokens: 800,
+                providerMetadata: {
+                  openai: {
+                    store: false
+                  }
+                }
+              }
+            })
+          });
         case 'xai':
           return xai("grok-3-mini-beta");
         case 'deepseek':
@@ -96,6 +110,7 @@ export async function POST(req: Request) {
           webSearch: openaiClient.tools.webSearchPreview()
         };
       }
+
       return { ...baseTools, webSearch };
     };
 
@@ -106,7 +121,7 @@ export async function POST(req: Request) {
       maxSteps: 5,
       tools: getTools(model, messages[messages.length - 1].content),
       toolChoice: 'auto',
-      experimental_transform: [smoothStream({ chunking: 'word' })],
+      experimental_transform: [smoothStream({ chunking: /[\u4E00-\u9FFF]|\S+\s+/, })],
       toolCallStreaming: true,
       maxTokens: 1000,
       experimental_telemetry: {
@@ -127,6 +142,12 @@ export async function POST(req: Request) {
 
     return result.toDataStreamResponse({
       getErrorMessage: (error) => {
+        if (typeof error === 'string') {
+          return error;
+        }
+        if (error instanceof Error) {
+          return error.message;
+        }
         if (error instanceof ToolExecutionError) {
           return error.message;
         }

@@ -36,11 +36,10 @@ export async function POST(request: Request) {
     if (!passwordMatch) {
       return NextResponse.json({ error: '邮箱或密码不正确' }, { status: 401 });
     }
-    console.log('验证通过', user)
     // 登录成功，生成JWT
     const { password, ...userWithoutPassword } = user;
     // 确保传递给 generateToken 的对象符合 UserJwtPayload 类型
-    const token = generateToken({
+    const token = await generateToken({
       id: user.id,
       email: user.email,
       name: user.name
