@@ -77,9 +77,15 @@ export const config = {
   matcher: [
     /*
      * 匹配所有路径，除了:
-     * - api 路由 (除了 /api/me)
-     * - 静态文件 (_next/static, favicon.ico 等)
+     * - api 路由 (除了 /api/me) - 这部分逻辑在中间件主体代码中处理
+     * - _next/static (Next.js 静态文件)
+     * - _next/image (Next.js 图片优化文件)
+     * - favicon.ico
+     * - manifest.json (PWA manifest)
+     * - sw.js (Service Worker)
+     * - workbox-*.js (Workbox 库)
+     * - nexus-logo.svg (你的应用图标)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon\.ico|manifest\.json|sw\.js|workbox-.*\.js|nexus-logo\.svg).*)',
   ],
 };

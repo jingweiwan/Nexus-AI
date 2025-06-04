@@ -85,7 +85,10 @@ export default function Page() {
         >
           <div className="flex items-center">
             <NexusLogo width={isMobile ? 50 : 200} height={isMobile ? 50 : 200} />
-            <div className="text-white ml-4 text-2xl font-bold">Nexus</div>
+            {isMobile ? (
+              <div className="text-white ml-4 text-2xl font-bold">Nexus</div>
+            ) : null}
+
           </div>
 
         </motion.div>

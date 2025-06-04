@@ -18,7 +18,6 @@ export const webSearch = tool({
     const day = String(now.getDate()).padStart(2, '0');
     const formattedDate = `${year}-${month}-${day}`;
     const enhancedQuery = `${query} ${formattedDate}`;
-
     const { results } = await exa.searchAndContents(enhancedQuery, {
       livecrawl: 'always',
       numResults: 15,
