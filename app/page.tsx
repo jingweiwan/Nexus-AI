@@ -13,16 +13,14 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import dashboardImage from '@/public/nexus-dashboard.jpeg';
 import demoImage from '@/public/demo.png';
 import heroMobileImage from '@/public/hero-mobile.png';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import MarketPrices from '@/components/market-price';
 
 export default function Page() {
   const { user, loading } = useAuth();
   const isLoggedIn = !!user;
-  const [cryptoData, setCryptoData] = useState({
-    btc: { price: 36789, change: -2.4 },
-    eth: { price: 2456, change: 1.2 }
-  });
 
   // 动画变体
   const containerVariants = {
@@ -36,6 +34,7 @@ export default function Page() {
     }
   };
 
+  const isMobile = useIsMobile();
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
@@ -50,24 +49,6 @@ export default function Page() {
     visible: { opacity: 1, transition: { duration: 0.6 } }
   };
 
-  // 模拟加载实时数据
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCryptoData({
-        btc: {
-          price: Math.floor(36000 + Math.random() * 2000),
-          change: +(Math.random() * 6 - 3).toFixed(1)
-        },
-        eth: {
-          price: Math.floor(2300 + Math.random() * 300),
-          change: +(Math.random() * 4 - 2).toFixed(1)
-        }
-      });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <main className="flex min-h-screen flex-col p-6">
       <motion.div
@@ -81,7 +62,14 @@ export default function Page() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <NexusLogo />
+          <div className="flex items-center">
+            <NexusLogo width={isMobile ? 50 : 200} height={isMobile ? 50 : 200} />
+            {isMobile ? (
+              <div className="text-white ml-4 text-2xl font-bold">Nexus</div>
+            ) : null}
+
+          </div>
+
         </motion.div>
 
         <motion.div
@@ -90,70 +78,7 @@ export default function Page() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <motion.div
-            className="bg-white/10 backdrop-blur-md rounded-lg p-3 flex items-center"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-          >
-            <div className="text-center">
-              <div className="text-xs text-gray-300">BTC</div>
-              <motion.div
-                className="text-sm font-bold text-white"
-                key={cryptoData.btc.price}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                ${cryptoData.btc.price}
-              </motion.div>
-              <motion.div
-                className={`text-xs ${cryptoData.btc.change >= 0 ? 'text-green-400' : 'text-red-400'}`}
-                key={cryptoData.btc.change}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                {cryptoData.btc.change >= 0 ? '+' : ''}{cryptoData.btc.change}%
-              </motion.div>
-            </div>
-          </motion.div>
-          <motion.div
-            className="bg-white/10 backdrop-blur-md rounded-lg p-3 flex items-center"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-          >
-            <div className="text-center">
-              <div className="text-xs text-gray-300">ETH</div>
-              <motion.div
-                className="text-sm font-bold text-white"
-                key={cryptoData.eth.price}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                ${cryptoData.eth.price}
-              </motion.div>
-              <motion.div
-                className={`text-xs ${cryptoData.eth.change >= 0 ? 'text-green-400' : 'text-red-400'}`}
-                key={cryptoData.eth.change}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                {cryptoData.eth.change >= 0 ? '+' : ''}{cryptoData.eth.change}%
-              </motion.div>
-            </div>
-          </motion.div>
-          <motion.div
-            className="bg-white/10 backdrop-blur-md rounded-lg p-3 flex items-center"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-          >
-            <div className="text-center">
-              <div className="text-xs text-gray-300">市场情绪</div>
-              <div className="text-sm font-bold text-white">中性</div>
-            </div>
-          </motion.div>
+          <MarketPrices symbols={['btc', 'eth']} showMarketSentiment={true} />
         </motion.div>
       </motion.div>
       <div className="mt-4 flex grow flex-col gap-4 md:flex-row">
@@ -198,7 +123,7 @@ export default function Page() {
               transition={{ duration: 0.5, delay: 0.8 }}
             >
               <Link
-                href="/dashboard"
+                href="/home"
                 className={cn(
                   buttonVariants({ variant: "default", size: "lg" }),
                   "self-start"

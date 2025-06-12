@@ -12,7 +12,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 // @ts-ignore
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { Weather } from '@/components/ui/weather';
-
+import { Switch } from '@/components/ui/switch';
 // 模型配置
 const MODEL_CONFIG = [
   { id: 'openai', name: 'OpenAI', available: false },
@@ -20,25 +20,39 @@ const MODEL_CONFIG = [
   { id: 'deepseek', name: 'DeepSeek', available: true }
 ];
 
+
+
 export default function Page() {
-  const [model, setModel] = useState<string>('xai');
-  const { messages, input, handleSubmit, handleInputChange, status, data, stop } =
+  const [modelConfig, setModelConfig] = useState<{ id: string, name: string, available: boolean, default: boolean }[]>([]);
+  const [model, setModel] = useState<string>('');
+  const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
+  const { messages, input, handleSubmit, handleInputChange, status, data, stop, reload } =
     useChat({
       api: '/api/chat',
       body: {
         model: model,
+        useWebSearch: useWebSearch,
       },
     });
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<string>('');
   const [autoScroll, setAutoScroll] = useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
     if (messagesEndRef.current && autoScroll) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, autoScroll]);
+
+  // 监听状态变化，处理错误
+  useEffect(() => {
+    if (status === 'error') {
+      setErrorMessage('抱歉，请求处理出错，请稍后再试');
+    } else {
+      setErrorMessage('');
+    }
+  }, [status]);
 
   // 监听滚动事件，当用户手动滚动时禁用自动滚动
   useEffect(() => {
@@ -64,6 +78,17 @@ export default function Page() {
     };
   }, []);
 
+  useEffect(() => {
+    fetch('/api/edge-config?key=MODEL_CONFIG').then((res) => res.json()).then((data) => {
+      const configData = data as { id: string, name: string, available: boolean, default: boolean }[];
+      setModelConfig(configData);
+
+      // 设置默认模型
+      const defaultModel = configData.find(m => m.default)?.id || 'xai';
+      setModel(defaultModel);
+    });
+  }, []);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -84,6 +109,11 @@ export default function Page() {
     setModel(newModel);
   };
 
+  const handleRetry = () => {
+    setErrorMessage('');
+    reload();
+  };
+
   const prompts = [
     "如何分析期权定价？",
     "解释隐含波动率",
@@ -92,9 +122,9 @@ export default function Page() {
   ];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] p-6 mx-auto">
+    <div className="flex flex-col h-[calc(100vh-2rem)] p-6 mx-auto">
       <div className="mb-4 flex justify-end space-x-2">
-        {MODEL_CONFIG.map((modelItem) => (
+        {modelConfig.map((modelItem) => (
           <button
             key={modelItem.id}
             onClick={() => modelItem.available && handleModelChange(modelItem.id)}
@@ -154,9 +184,9 @@ export default function Page() {
               transition={{ delay: 0.3 }}
               className="text-muted-foreground mb-4"
             >
-              一个基于DeepSeek API的智能期权交易助手
+              一个基于AI大模型的智能期权交易助手
             </motion.p>
-            <div className="grid grid-cols-2 gap-2 w-full max-w-md">
+            <div className="grid grid-cols-2 gap-6 w-full max-w-md">
               {prompts.map((prompt, index) => (
                 <motion.div
                   key={index}
@@ -166,7 +196,7 @@ export default function Page() {
                   whileHover={{ scale: 1.03, backgroundColor: "#e5e7eb" }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handlePromptClick(prompt)}
-                  className="bg-gray-100 p-3 rounded-lg cursor-pointer shadow-sm hover:shadow-md transition-all duration-200"
+                  className="bg-gray-200 p-3 rounded-lg cursor-pointer shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <p className="font-medium text-sm">{prompt}</p>
                 </motion.div>
@@ -195,6 +225,7 @@ export default function Page() {
                     }`}
                   >
                     {message.parts.map((part, index) => {
+
                       switch (part.type) {
                         case 'text':
                           return message.role === 'user' ? (
@@ -265,6 +296,24 @@ export default function Page() {
                           const { toolInvocation } = part;
                           const { toolName, toolCallId, state } = toolInvocation;
 
+                          // 处理部分调用状态
+                          if (state === 'partial-call') {
+                            return (
+                              <div key={`partial-${toolCallId}`} className="bg-blue-50 p-3 rounded-md my-2">
+                                <div className="flex items-center text-sm text-blue-600 mb-1">
+                                  <span className="font-medium">正在准备工具调用：</span>
+                                  <span className="ml-1 bg-blue-100 px-2 py-0.5 rounded text-xs">
+                                    {toolName}
+                                  </span>
+                                </div>
+                                {toolName === 'webSearch' && toolInvocation.args?.query && (
+                                  <div className="text-sm">
+                                    搜索查询: <span className="font-medium">{toolInvocation.args.query}</span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
                           if (state === 'call') {
                             const { args } = toolInvocation;
                             return (
@@ -272,38 +321,78 @@ export default function Page() {
                                 key={toolCallId}
                                 className={cx({
                                   skeleton: ['getWeather'].includes(toolName),
+                                  'bg-orange-50 p-3 rounded-md my-2 w-full': true
                                 })}
                               >
+                                <div className="flex items-center justify-between w-full text-sm mb-2">
+                                  <div className="flex items-center">
+                                    <span className="font-medium text-gray-800">工具调用：</span>
+                                    <span className="ml-1.5 bg-orange-100 px-2.5 py-0.5 rounded-full text-xs text-orange-700 font-medium">
+                                      {toolName}
+                                    </span>
+                                  </div>
+
+                                  {(status === 'submitted' || status === 'streaming') && (
+                                    <div className="flex items-center text-xs text-gray-500 italic">
+                                      <span className="mr-1.5 h-2 w-2 bg-orange-400 rounded-full animate-pulse"></span>
+                                      使用工具中...
+                                    </div>
+                                  )}
+                                </div>
                                 {toolName === 'getWeather' ? (
                                   <Weather />
-                                ): (
+                                ) : toolName === 'webSearch' && args?.query ? (
+                                  <div className="text-sm">
+                                    搜索查询: <span className="font-medium">{args.query}</span>
+                                  </div>
+                                ) : (
                                   <div>
-                                    <h3>{args.title}</h3>
-                                    <p>{args.content}</p>
+                                    <h3>{args?.title}</h3>
+                                    <p>{args?.content}</p>
                                   </div>
                                 )}
                               </div>
-                            )
+                            );
                           }
                           if (state === 'result') {
-                            const { args } = toolInvocation;
+                            const { args, result } = toolInvocation;
                             return (
                               <div
                                 key={toolCallId}
                                 className={cx({
                                   skeleton: ['getWeather'].includes(toolName),
+                                  'bg-blue-50 p-3 rounded-md my-2 transition-all duration-300': true
                                 })}
                               >
+                                <div className="flex items-center text-sm text-blue-600 mb-1">
+                                  <span className="font-medium">工具调用结果：</span>
+                                  <span className="ml-1 bg-blue-100 px-2 py-0.5 rounded text-xs">
+                                    {toolName}
+                                  </span>
+                                </div>
                                 {toolName === 'getWeather' ? (
-                                  <Weather />
-                                ): (
+                                  <Weather weatherAtLocation={result}/>
+                                ) : toolName === 'webSearch' ? (
+                                  <div className="text-sm">
+                                    <div className="flex items-center mb-2">
+                                      <span className="font-medium">搜索查询:</span>
+                                      <span className="ml-1">{args.query}</span>
+                                    </div>
+                                    <div className="text-xs text-gray-500 italic mb-1">
+                                      {status === 'submitted' ? `已获取搜索结果，AI正在分析中...` :  status === 'ready' ?  `AI分析完成` : `AI生成中...`}
+                                    </div>
+                                    <div className="text-xs text-gray-500 italic">
+                                      结果将在下方文本中呈现
+                                    </div>
+                                  </div>
+                                ) : (
                                   <div>
                                     <h3>{args.title}</h3>
                                     <p>{args.content}</p>
                                   </div>
                                 )}
                               </div>
-                            )
+                            );
                           }
 
                           default:
@@ -315,8 +404,34 @@ export default function Page() {
               ))}
             </AnimatePresence>
 
-            {/* 添加AI正在输入的空对话框 */}
-            {status === 'submitted' && (
+            {/* 添加AI正在输入的状态显示 */}
+            {status === 'error' ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.3 }}
+                className="flex justify-start"
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="max-w-[80%] rounded-lg p-4 shadow-sm bg-red-50 text-red-800 border border-red-200"
+                >
+                  <div className="flex items-center space-x-2 mb-2">
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                    <span className="font-medium">请求出错</span>
+                  </div>
+                  <p>{errorMessage || '发生了一个错误，请稍后再试'}</p>
+                  <button
+                    onClick={handleRetry}
+                    className="mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-md text-sm transition-colors duration-200"
+                  >
+                    重试
+                  </button>
+                </motion.div>
+              </motion.div>
+            ) : status === 'submitted' && (
               <motion.div
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -329,22 +444,29 @@ export default function Page() {
                   transition={{ duration: 0.3 }}
                   className="max-w-[80%] rounded-lg p-4 shadow-sm bg-gray-100 text-gray-800"
                 >
-                  <div className="flex items-center space-x-1">
-                    <motion.span
-                      animate={{ opacity: [0, 1, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0 }}
-                      className="text-gray-500 text-lg"
-                    >.</motion.span>
-                    <motion.span
-                      animate={{ opacity: [0, 1, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.2 }}
-                      className="text-gray-500 text-lg"
-                    >.</motion.span>
-                    <motion.span
-                      animate={{ opacity: [0, 1, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.4 }}
-                      className="text-gray-500 text-lg"
-                    >.</motion.span>
+                  <div className="flex items-center space-x-2">
+                    {status === 'submitted' ? (
+                      <span>正在连接</span>
+                    ) : (
+                      null
+                    )}
+                    <span className="flex">
+                      <motion.span
+                        animate={{ opacity: [0, 1, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0 }}
+                        className="text-gray-500"
+                      >.</motion.span>
+                      <motion.span
+                        animate={{ opacity: [0, 1, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.2 }}
+                        className="text-gray-500"
+                      >.</motion.span>
+                      <motion.span
+                        animate={{ opacity: [0, 1, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.4 }}
+                        className="text-gray-500"
+                      >.</motion.span>
+                    </span>
                   </div>
                 </motion.div>
               </motion.div>
@@ -362,90 +484,58 @@ export default function Page() {
         onSubmit={handleSubmit}
         className="relative"
       >
-        <textarea
-          value={input}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          placeholder="输入您的问题..."
-          disabled={status !== 'ready'}
-          className="w-full p-4 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none shadow-sm transition-all duration-200"
-          rows={3}
-        />
-        {status === 'ready' ? (
-          <motion.button
-            type="submit"
-            disabled={!input.trim()}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="absolute right-3 bottom-3 p-2 rounded-full bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            aria-label="发送"
-            tabIndex={0}
-          >
-            <SendIcon className="h-5 w-5" />
-          </motion.button>
-        ) : (
-          <motion.button
-            type="button"
-            onClick={handleStopGeneration}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="absolute right-3 bottom-3 p-2 rounded-full bg-red-500 text-white transition-all duration-200"
-            aria-label="中止"
-            tabIndex={0}
-          >
-            <XCircle className="h-5 w-5" />
-          </motion.button>
-        )}
-      </motion.form>
+        <div className="relative">
+          <textarea
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="输入您的问题..."
+            disabled={status !== 'ready' && status !== 'error'}
+            className="w-full p-4 pt-12 pr-12 pb-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none shadow-sm transition-all duration-200"
+            rows={3}
+          />
 
-      <AnimatePresence>
-        {status !== 'ready' && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="text-center mt-2 text-sm text-muted-foreground"
-          >
-            {status === 'submitted' ? (
-              <div className="flex items-center justify-center space-x-2">
-                <span>正在连接</span>
-                <span className="flex space-x-1">
-                  <motion.span
-                    animate={{ opacity: [0, 1, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0 }}
-                  >.</motion.span>
-                  <motion.span
-                    animate={{ opacity: [0, 1, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.2 }}
-                  >.</motion.span>
-                  <motion.span
-                    animate={{ opacity: [0, 1, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.4 }}
-                  >.</motion.span>
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center space-x-2">
-                <span>正在思考</span>
-                <span className="flex space-x-1">
-                  <motion.span
-                    animate={{ opacity: [0, 1, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0 }}
-                  >.</motion.span>
-                  <motion.span
-                    animate={{ opacity: [0, 1, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.2 }}
-                  >.</motion.span>
-                  <motion.span
-                    animate={{ opacity: [0, 1, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.4 }}
-                  >.</motion.span>
-                </span>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <div className="absolute top-4 left-2 flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="web-search"
+                checked={useWebSearch}
+                onCheckedChange={setUseWebSearch}
+                className="data-[state=checked]:bg-primary"
+              />
+              <label htmlFor="web-search" className="text-xs text-gray-600 cursor-pointer">
+                启用网络搜索
+              </label>
+            </div>
+          </div>
+
+          {status === 'ready' || status === 'error' ? (
+            <motion.button
+              type="submit"
+              disabled={!input.trim()}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="absolute right-3 bottom-3 p-2 rounded-full bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              aria-label="发送"
+              tabIndex={0}
+            >
+              <SendIcon className="h-5 w-5" />
+            </motion.button>
+          ) : (
+            <motion.button
+              type="button"
+              onClick={handleStopGeneration}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="absolute right-3 bottom-3 p-2 rounded-full bg-red-500 text-white transition-all duration-200"
+              aria-label="中止"
+              tabIndex={0}
+            >
+              <XCircle className="h-5 w-5" />
+            </motion.button>
+          )}
+        </div>
+      </motion.form>
     </div>
   );
 }

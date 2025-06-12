@@ -30,8 +30,8 @@ export default function LoginPage() {
       setIsRedirecting(true);
       // 预加载dashboard页面
       const prefetchDashboard = async () => {
-        await router.prefetch('/dashboard');
-        router.push('/dashboard');
+        await router.prefetch('/home');
+        router.push('/home');
       };
       prefetchDashboard();
     }
