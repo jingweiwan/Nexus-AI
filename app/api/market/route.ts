@@ -10,8 +10,13 @@ const RECONNECT_BASE_DELAY = 5000; // 5秒
 const CONNECTION_TIMEOUT = 10000; // 10秒
 const PING_INTERVAL = 30000; // 30秒
 
-// 全局市场数据对象
-export const marketData: MarketData = {};
+// 全局市场数据对象 - 不再导出，而是通过函数访问
+const marketData: MarketData = {};
+
+// 获取市场数据的函数 - 供其他模块使用
+export function getMarketData(): MarketData {
+  return { ...marketData }; // 返回副本以避免外部修改
+}
 
 // 昨日收盘价，用于计算变化百分比
 const lastPrices: Record<string, number> = {};
@@ -466,6 +471,9 @@ export async function GET(request: Request): Promise<NextResponse> {
     finnhubSocket = getWebSocketInstance();
   }
 
+  // 获取当前市场数据
+  const currentMarketData = getMarketData();
+
   // 如果指定了symbols参数
   if (symbols) {
     // 解析请求的符号列表
@@ -478,9 +486,9 @@ export async function GET(request: Request): Promise<NextResponse> {
       const lowerCode = code.toLowerCase();
 
       // 如果已经有这个符号的数据，就添加到响应中
-      if (marketData[lowerCode]) {
+      if (currentMarketData[lowerCode]) {
         console.log(`返回已有数据: ${lowerCode}`);
-        response[lowerCode] = marketData[lowerCode];
+        response[lowerCode] = currentMarketData[lowerCode];
       } else {
         // 对于新的符号，添加到监控列表
         console.log(`添加新符号到监控: ${lowerCode}`);
@@ -494,7 +502,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   // 如果没有指定symbols参数，返回所有数据
   console.log('返回所有市场数据');
-  return NextResponse.json(marketData);
+  return NextResponse.json(currentMarketData);
 }
 
 // 添加新资产的API端点

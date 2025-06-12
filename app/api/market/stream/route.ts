@@ -1,6 +1,6 @@
 // app/api/market/stream/route.ts
 import { NextRequest } from 'next/server';
-import { marketData } from '../route';
+import { getMarketData } from '../route';
 import { PriceData } from '../types/market';
 
 export async function GET(request: NextRequest): Promise<Response> {
@@ -32,10 +32,13 @@ export async function GET(request: NextRequest): Promise<Response> {
             console.log(`[${requestId}] SSE发送更新 #${counter}`);
           }
 
+          // 获取最新的市场数据
+          const currentMarketData = getMarketData();
+
           // 检查marketData中是否有数据
           const hasRealData = symbols.some(code => {
             const lowerCode = code.toLowerCase();
-            return marketData[lowerCode] && marketData[lowerCode].price > 0;
+            return currentMarketData[lowerCode] && currentMarketData[lowerCode].price > 0;
           });
 
           // 如果指定了symbols，只返回请求的符号数据
@@ -43,8 +46,8 @@ export async function GET(request: NextRequest): Promise<Response> {
             const filteredData: Record<string, PriceData> = {};
             symbols.forEach(code => {
               const lowerCode = code.toLowerCase();
-              if (marketData[lowerCode] && marketData[lowerCode].price > 0) {
-                filteredData[lowerCode] = marketData[lowerCode];
+              if (currentMarketData[lowerCode] && currentMarketData[lowerCode].price > 0) {
+                filteredData[lowerCode] = currentMarketData[lowerCode];
               } else if (counter === 1) {
                 // 仅在首次发送时记录缺失数据的警告
                 console.log(`[${requestId}] 警告: 未找到${lowerCode}的价格数据`);
@@ -62,8 +65,8 @@ export async function GET(request: NextRequest): Promise<Response> {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify(filteredData)}\n\n`));
           } else {
             // 否则返回所有数据
-            const allData = Object.keys(marketData).length > 0
-              ? marketData // 使用真实数据
+            const allData = Object.keys(currentMarketData).length > 0
+              ? currentMarketData // 使用真实数据
               : {};  // 使用测试数据
 
             if (counter === 1) {
